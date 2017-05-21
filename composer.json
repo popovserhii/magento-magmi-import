@@ -1,0 +1,14 @@
+{
+    "name": "popov/magento-magmi-import",
+    "type": "magento-module",
+    "license":"MIT Licence",
+    "description":"Import products and images based on Magmi",
+    "authors":[{
+        "name":"Serhii Popov",
+        "email":"popov@agere.com.ua"
+    }],
+    "extra": {
+        "map": [
+			  ]
+    }
+}
