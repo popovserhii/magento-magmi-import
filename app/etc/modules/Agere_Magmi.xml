@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+	<modules>
+		<Agere_Magmi>
+			<active>true</active>
+			<codePool>local</codePool>
+		</Agere_Magmi>
+	</modules>
+</config>
