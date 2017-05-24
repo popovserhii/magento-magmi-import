@@ -2,13 +2,13 @@
 /**
  * Magmi product importer
  *
- * @category Agere
- * @package Agere_<package>
+ * @category Popov
+ * @package Popov_<package>
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 09.12.13 11:36
  */
 
-class Agere_Magmi_Import_Product extends Agere_Magmi_Import_Abstract {
+class Popov_Magmi_Import_Product extends Popov_Magmi_Import_Abstract {
 
 	protected $reconXmlFileName = 'message.xml';
 

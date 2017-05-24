@@ -4,6 +4,6 @@
  * @author		Sergii Popov
  * @license     http://opensource.org/licenses/gpl-license.php  GNU General Public License (GPL)
  */
-class Agere_Magmi_Helper_Data extends Mage_Core_Helper_Abstract {
+class Popov_Magmi_Helper_Data extends Mage_Core_Helper_Abstract {
 
 }

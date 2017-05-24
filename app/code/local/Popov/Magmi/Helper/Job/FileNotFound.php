@@ -3,17 +3,17 @@
 /**
  * Push files to ftp server
  *
- * @category Agere
- * @package Agere_Magmi
+ * @category Popov
+ * @package Popov_Magmi
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 13.03.2017 18:16
  */
-class Agere_Magmi_Helper_Job_FileNotFound extends Mage_Core_Helper_Abstract
+class Popov_Magmi_Helper_Job_FileNotFound extends Mage_Core_Helper_Abstract
 {
-    /** @var Agere_Magmi_Helper_Mail */
+    /** @var Popov_Magmi_Helper_Mail */
     protected $mailClient;
 
-    /** @var Agere_Magmi_Import_Product */
+    /** @var Popov_Magmi_Import_Product */
     protected $importer;
 
     protected $collected = [];
@@ -21,7 +21,7 @@ class Agere_Magmi_Helper_Job_FileNotFound extends Mage_Core_Helper_Abstract
     public function run($importer)
     {
         $this->importer = $importer;
-        /** @var Agere_Magmi_Import_Product $productImport */
+        /** @var Popov_Magmi_Import_Product $productImport */
         //$this->collect();
         $this->sendNotification();
     }

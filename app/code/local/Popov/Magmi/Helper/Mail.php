@@ -2,12 +2,12 @@
 /**
  * Email notification helper
  *
- * @category Agere
- * @package Agere_Magmi
+ * @category Popov
+ * @package Popov_Magmi
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 23.12.14 20:17
  */
-class Agere_Magmi_Helper_Mail extends Mage_Core_Helper_Abstract {
+class Popov_Magmi_Helper_Mail extends Mage_Core_Helper_Abstract {
 
 	const XML_PATH_CALLBACK_RECIPIENT = 'agere_magmi/mail_notification/recipient_email';
 	const XML_PATH_CALLBACK_SENDER = 'agere_magmi/mail_notification/sender_email_identity';

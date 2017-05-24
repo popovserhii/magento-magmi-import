@@ -2,8 +2,8 @@
 /**
  * Image Photo Grabber
  *
- * @category Agere
- * @package Agere_Shell
+ * @category Popov
+ * @package Popov_Shell
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 22.12.15 12:20
  */
@@ -17,7 +17,7 @@ class Mage_Shell_Magmi extends Mage_Shell_Abstract {
 	public function run() {
 		/** Magento Import/Export Profiles */
 		if ($importType = $this->getArg('import')){
-			$importer = Agere_Magmi_Import_Factory::create($importType);
+			$importer = Popov_Magmi_Import_Factory::create($importType);
 			$importer->run();
 			echo 'Import finished successfully' . "\r\n";
 		} else {

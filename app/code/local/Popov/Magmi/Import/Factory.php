@@ -2,15 +2,15 @@
 /**
  * Magmi importer factory
  *
- * @category Agere
- * @package Agere_Magmi
+ * @category Popov
+ * @package Popov_Magmi
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 09.12.13 15:42
  */
 
-class Agere_Magmi_Import_Factory {
+class Popov_Magmi_Import_Factory {
 
-	static public $namespace = 'Agere_Magmi_Import';
+	static public $namespace = 'Popov_Magmi_Import';
 
 	static protected $created = [];
 

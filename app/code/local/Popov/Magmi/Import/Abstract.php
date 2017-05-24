@@ -2,13 +2,13 @@
 /**
  * Magmi importer
  *
- * @category Agere
- * @package Agere_Magmi
+ * @category Popov
+ * @package Popov_Magmi
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 06.12.13 18:27
  */
 
-abstract class Agere_Magmi_Import_Abstract {
+abstract class Popov_Magmi_Import_Abstract {
 
 	/**
 	 * @var SplFileInfo

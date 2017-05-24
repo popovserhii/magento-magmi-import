@@ -2,13 +2,13 @@
 /**
  * Enter description here...
  *
- * @category Agere
- * @package Agere_<package>
+ * @category Popov
+ * @package Popov_<package>
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 07.12.13 17:08
  */
 
-class Agere_Magmi_Import_Image extends Agere_Magmi_Import_Abstract {
+class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 
 	/**
 	 * Number of items in iteration

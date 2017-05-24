@@ -3,17 +3,17 @@
 /**
  * Enter description here...
  *
- * @category Agere
- * @package Agere_Magmi
+ * @category Popov
+ * @package Popov_Magmi
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 13.03.2017 18:16
  */
-class Agere_Magmi_Helper_Job_PullFile extends Mage_Core_Helper_Abstract
+class Popov_Magmi_Helper_Job_PullFile extends Mage_Core_Helper_Abstract
 {
     /** @var Varien_Io_Ftp */
     protected $ftp;
 
-    /** @var Agere_Magmi_Import_Product */
+    /** @var Popov_Magmi_Import_Product */
     protected $importer;
 
     protected $importDir = 'import';
@@ -21,7 +21,7 @@ class Agere_Magmi_Helper_Job_PullFile extends Mage_Core_Helper_Abstract
     public function run($importer)
     {
         $this->importer = $importer;
-        /** @var Agere_Magmi_Import_Product $productImport */
+        /** @var Popov_Magmi_Import_Product $productImport */
 
         $this->checkDir();
         $this->pullFiles();

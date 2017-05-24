@@ -10,10 +10,10 @@
     "extra": {
         "map": [
           ["shell/magmi.php", "shell/magmi.php"],
-          ["app/code/local/Agere/Magmi/", "app/code/local/Agere/Magmi/"],
-          ["app/code/local/Agere/Magmi/", "app/code/local/Agere/Magmi/"],
-          ["app/etc/modules/Agere_Magmi.xml", "app/etc/modules/Agere_Magmi.xml"],
-          ["app/etc/modules/Agere_Magmi.xml", "app/etc/modules/Agere_Magmi.xml"],
+          ["app/code/local/Popov/Magmi/", "app/code/local/Popov/Magmi/"],
+          ["app/code/local/Popov/Magmi/", "app/code/local/Popov/Magmi/"],
+          ["app/etc/modules/Popov_Magmi.xml", "app/etc/modules/Popov_Magmi.xml"],
+          ["app/etc/modules/Popov_Magmi.xml", "app/etc/modules/Popov_Magmi.xml"],
           ["app/locale/en_US/template/email/agere_magmi/mport_problem_form.html", "app/locale/en_US/template/email/agere_magmi/mport_problem_form.html"],
           ["app/locale/ru_RU/template/email/agere_magmi/mport_problem_form.html", "app/locale/ru_RU/template/email/agere_magmi/mport_problem_form.html"],
           ["app/locale/uk_UA/template/email/agere_magmi/mport_problem_form.html", "app/locale/uk_UA/template/email/agere_magmi/mport_problem_form.html"]

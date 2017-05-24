@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <config>
 	<modules>
-		<Agere_Magmi>
+		<Popov_Magmi>
 			<version>0.1.0</version>
-		</Agere_Magmi>
+		</Popov_Magmi>
 	</modules>
 
 	<adminhtml>
 		<translate>
 			<modules>
-				<Agere_Magmi>
+				<Popov_Magmi>
 					<files>
-						<default>Agere_Magmi.csv</default>
+						<default>Popov_Magmi.csv</default>
 					</files>
-				</Agere_Magmi>
+				</Popov_Magmi>
 			</modules>
 		</translate>
 		<acl>
@@ -40,12 +40,12 @@
 	<global>
 		<models>
 			<agere_magmi>
-				<class>Agere_Magmi_Model</class>
+				<class>Popov_Magmi_Model</class>
 			</agere_magmi>
 		</models>
 		<helpers>
 			<agere_magmi>
-				<class>Agere_Magmi_Helper</class>
+				<class>Popov_Magmi_Helper</class>
 			</agere_magmi>
 		</helpers>
 
@@ -76,7 +76,7 @@
 			<agere_magmi>
 				<use>standard</use>
 				<args>
-					<module>Agere_Magmi</module>
+					<module>Popov_Magmi</module>
 					<frontName>magmi</frontName>
 				</args>
 			</agere_magmi>
