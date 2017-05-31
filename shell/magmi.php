@@ -7,7 +7,8 @@
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 22.12.15 12:20
  */
-require_once 'abstract.php';
+$rootPath = realpath($file = './');
+require_once $rootPath . '/shell/abstract.php';
 
 class Mage_Shell_Magmi extends Mage_Shell_Abstract {
 

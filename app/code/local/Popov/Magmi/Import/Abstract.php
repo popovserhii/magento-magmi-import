@@ -10,6 +10,9 @@
 
 abstract class Popov_Magmi_Import_Abstract {
 
+    const RUN_MODE_REAL = 'real';
+    const RUN_MODE_DEBUG = 'debug';
+
 	/**
 	 * @var SplFileInfo
 	 */
@@ -88,8 +91,51 @@ abstract class Popov_Magmi_Import_Abstract {
 
 	protected $tasks = [];
 
+    protected $runMode = self::RUN_MODE_REAL;
 
-	public function preImport()
+    /**
+     * Config related to import (class) type
+     *
+     * @var array
+     */
+    protected $config = [];
+
+    /** @var array */
+    protected $currentConfig = [];
+
+    protected function getCurrentConfig()
+    {
+        return $this->currentConfig;
+    }
+
+    public function setRunMode($mode)
+    {
+        $this->runMode = $mode;
+    }
+
+    public function isRealMode()
+    {
+        return $this->runMode === self::RUN_MODE_REAL;
+    }
+
+    public function isDebugMode()
+    {
+        return $this->runMode === self::RUN_MODE_DEBUG;
+    }
+
+    public function setConfig($config)
+    {
+        $this->config = $config;
+
+        return $this;
+    }
+
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    public function preImport()
     {
         $this->runJobs('pre');
     }
@@ -101,17 +147,20 @@ abstract class Popov_Magmi_Import_Abstract {
 
 	final public function run()
     {
-		foreach ($this->websites as $name => $attrs) {
-			$this->currentWebsite = $name;
-			try {
-                $this->log(sprintf('Import %s: run prepare jobs for website: ' . $name, $this->getImportCode()));
-				if ($this->preImport()) {
-					$this->backupDb();
+        foreach ($this->getConfig() as $name => $config) {
+            $this->currentConfig = $config;
 
-                    $this->log(sprintf('Import %s: run import for website: ' . $name, $this->getImportCode()));
+		    //foreach ($this->websites as $name => $attrs) {
+			//$this->currentWebsite = $name;
+            $this->log(sprintf('Import %s: run prepare jobs for config: ' . $name, $this->getImportCode()));
+            try {
+				if ($this->preImport()) {
+					#$this->backupDb();
+
+                    $this->log(sprintf('Import %s: run import for config: ' . $name, $this->getImportCode()));
                     $this->import();
 
-                    $this->log(sprintf('Import %s: run post jobs for website: ' . $name, $this->getImportCode()));
+                    $this->log(sprintf('Import %s: run post jobs for config: ' . $name, $this->getImportCode()));
                     $this->postImport();
                 }
             } catch (Exception $e) {
@@ -147,6 +196,9 @@ abstract class Popov_Magmi_Import_Abstract {
             $typeNode = $this->getImportCode() . '_import';
             $tasks = (array) Mage::getConfig()->getNode('agere_magmi/jobs/' . $typeNode);
             foreach ($tasks as $name => $task) {
+                if (!$task) {
+                    continue;
+                }
                 $this->tasks[(string) $task->alter][] = [
                     $task->run->children()->getName() => (string) $task->run->children()
                 ];
@@ -160,7 +212,8 @@ abstract class Popov_Magmi_Import_Abstract {
     {
         static $code;
 
-        return $code ?: $code = strtolower(array_pop(explode('_', get_class($this))));
+        $parts = explode('_', get_class($this));
+        return $code ?: $code = strtolower(array_pop($parts));
     }
 
 	public function getWebsiteCodes()
@@ -308,18 +361,13 @@ abstract class Popov_Magmi_Import_Abstract {
 				$cmd = escapeshellcmd(sprintf('"%s" "%s" %s', $this->getInterpreter(), $magmiCli, $arguments));
 				break;
 		}
-		//echo $cmd; //die(__METHOD__);
-		$runStatus = system($cmd);
+
+		$runStatus = $this->isRealMode() ? system($cmd) : $this->log($cmd);
 
 		return $runStatus;
 	}
 
-	public function log($message, $level = Zend_Log::INFO)
-    {
-        Mage::log($message, $level, $this->logFile);
-    }
-
-	/**
+    /**
 	 * Fix: Home Page – 404 Not Found after Magmi import end etc.
 	 */
 	protected function fix404Error() {
@@ -333,7 +381,12 @@ abstract class Popov_Magmi_Import_Abstract {
 		$connectionWrite->query("DELETE FROM `core_url_rewrite` WHERE (`core_url_rewrite`.`request_path` IN ('/', ''))");
 	}
 
-	/**
+    public function log($message, $level = Zend_Log::INFO)
+    {
+        Mage::log($message, $level, $this->logFile);
+    }
+
+    /**
 	 * Recursively move files from one directory to another
 	 *
 	 * @param String $src - Source of files being moved

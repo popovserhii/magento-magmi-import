@@ -126,7 +126,9 @@
 	</resources>
 	-->
 
-	<agere_magmi>
+	<popov_magmi>
+		<product_import />
+
 		<jobs>
 			<product_import>
 				<!-- This tag name doesn't matter. It only must be -->
@@ -151,5 +153,5 @@
 				</push_files_to_ftp>
 			</product_import>
 		</jobs>
-	</agere_magmi>
+	</popov_magmi>
 </config>
