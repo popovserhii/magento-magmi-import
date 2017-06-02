@@ -30,7 +30,7 @@ Config explanation
 	
 				<!-- 
 				If filename contain only unique attribute value (sku) without any additional simbols than you should
-				only to do bind to your attribute. Otherwise you must to use [RegEx Named Groups Capturing](https://stackoverflow.com/a/6971356/1335142)
+				only to do bind to your attribute. Otherwise you must to use RegEx Named Groups Capturing (https://stackoverflow.com/a/6971356/1335142)
 				in patterns, for example **<pattern>(?P<sku>.*)_[\d]+.jpg</pattern>** which will be parse next filename
 				*00SKZP&Slash&0NTGA_1.jpg*
 				-->
