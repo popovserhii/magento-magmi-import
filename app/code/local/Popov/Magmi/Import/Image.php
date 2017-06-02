@@ -1,9 +1,9 @@
 <?php
 /**
- * Enter description here...
+ * Import any media structure
  *
  * @category Popov
- * @package Popov_<package>
+ * @package Popov_Magmi
  * @author Popov Sergiy <popov@agere.com.ua>
  * @datetime: 07.12.13 17:08
  */
@@ -20,7 +20,7 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 	/**
 	 * @var \SplFileInfo
 	 */
-	protected $imagesDir = null;
+	protected $imagesSource = null;
 
 	/**
 	 * @var \SplFileInfo
@@ -44,10 +44,6 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 		'media_gallery'
 	);
 
-	protected $websites = array(
-        'admin' => []
-    );
-
 	/**
      * Collected attributes (directories named as attribute labels)
      *
@@ -55,18 +51,16 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
      */
 	protected $collectedAttrs = [];
 
-	protected $attributeSets = [
-		'Default' => [
-			'colorAttr' => 'color',
-		],
-		'Oodji' => [
-			'colorAttr' => 'color_code'
-		],
-	];
+    protected $level = 0;
 
+    protected $pathNested = [];
 
-	public function __construct() {
-		//$this->imagesDir = new \SplFileInfo(Mage::getBaseDir('media') . '/import/images');
+    protected $processedConfig = [];
+
+    protected $variables = [];
+
+	public function __construct()
+    {
 		$this->importFile = new \SplFileInfo(Mage::getBaseDir('var') . '/import/import-image.csv');
 	}
 
@@ -77,9 +71,28 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
      */
     protected function hasNested()
     {
-        $config = $this->getCurrentConfig();
+        $config = $this->getProcessedConfig();
 
-        return isset($config['scan']) && ($config['scan']['type'] == 'dir');
+        return isset($config['scan']) && ($config['type'] == 'dir');
+    }
+
+    protected function isDir()
+    {
+        $config = $this->getProcessedConfig();
+
+        return ($config['type'] == 'dir');
+    }
+
+    protected function isFile()
+    {
+        $config = $this->getProcessedConfig();
+
+        return ($config['type'] == 'file');
+    }
+
+    protected function isChild()
+    {
+        return ($this->level > 0);
     }
 
     protected function collectAttrs($dirId, $subDirId)
@@ -94,186 +107,251 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
         return $this->collectedAttrs;
     }
 
+    protected function getProcessedConfig()
+    {
+        return $this->processedConfig;
+    }
+
+    public function getImagesSource()
+    {
+        if (!$this->imagesSource) {
+            $config = $this->getCurrentConfig();
+            if ('unix' === $this->getSystemOs() && ('/' === $config['source_path'][0])) {
+                $sourcePath =  $config['source_path'];
+            } elseif ('win' === $this->getSystemOs() && (':' === $config['source_path'][1])) {
+                $sourcePath =  $config['source_path'];
+            } else {
+                $sourcePath = Mage::getBaseDir() . '/' . $config['source_path'];
+            }
+            $this->imagesSource = new \SplFileInfo($sourcePath);
+        }
+
+        return $this->imagesSource;
+    }
+
+    protected function getDefaultValues($withKeys = false)
+    {
+        static $default = [];
+
+        if (!$withKeys && isset($default['without'])) {
+            return $default['without'];
+        } elseif ($withKeys && isset($default['with'])) {
+            return $default['with'];
+        }
+
+        $default['with'] = [
+            'store' => 'admin',
+            'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH,
+            'status' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED,
+        ];
+        $default['without'] = array_values($default['with']);
+
+        if ($withKeys) {
+            return $default['with'];
+        }
+
+        return $default['without'];
+    }
+
+    protected function getVariable($name)
+    {
+        if (isset($this->variables[$name])) {
+            return $this->variables;
+        }
+
+        return false;
+    }
+
+    protected function addVariable($name, $value)
+    {
+        $this->variables[$name] = $value;
+
+        return $this;
+    }
+
+    protected function filterVariables($variables)
+    {
+        foreach ($variables as $name => $variable) {
+            if (!is_integer($name)) {
+                $this->variables[$name] = $variable;
+            }
+        }
+
+        return $this;
+    }
+
 	public function preImport()
     {
         parent::preImport();
 
-
-        /*'scan' => [
-            'product_type' => 'configurable', // simple
-            // If type "dir" than images put in this directory
-            // if type "file" than images should look in current directory
-            'type' => 'dir', // 'type' => 'file'
-            'strategy' => 'simple', // 'strategy' => 'pattern'
-            'name_to_attribute' => 'sku', // filename to attribute name
-            'images' => '%sku%/*.jpg',
-            'scan' => []
-        ];*/
-
-        //foreach ($this->getConfig() as $config) {
-        //    $this->currentConfig = $config['scan'];
-            if (($exist = $this->prepareImageFileImport($this->getCurrentConfig())) === true) {
-                $this->setCmdFlag('profile', 'image-import');
-                $this->setCmdFlag('CSV:filename', $this->importFile->getPathname());
-            }
-        //}
+        if (($exist = $this->prepareImageFileImport()) === true) {
+            $this->setCmdFlag('profile', 'image-import');
+            $this->setCmdFlag('CSV:filename', $this->importFile->getPathname());
+        }
 
         return $exist;
 	}
 
-	/*public function postImport() {
-		#$this->fix404Error();
-		#$this->backupImages();
-		//$this->reindex('lite');
-		#$this->clearCache();
-	}*/
-
 	protected function prepareImageFileImport()
     {
-        $config = $this->getCurrentConfig();
+        $this->level = 0;
+        $this->collectedAttrs = [];
 
-        $this->imagesDir = new \SplFileInfo(Mage::getBaseDir() . '/' . $config['source_path']);
+        $this->processedConfig = $config = $this->getCurrentConfig();
 
-		if (!$this->imagesDir->isDir()) {
+        $imagesSource = $this->getImagesSource();
+		if (!$imagesSource->isDir()) {
 			return false;
 		}
 
-
-		$imagesDir = $this->imagesDir->getPathname() . '/';
-		$grepMode = ('dir' == $config['type'])
-            ? Varien_Io_File::GREP_DIRS
-            : Varien_Io_File::GREP_FILES;
+		$imagesDir = $imagesSource->getPathname() . '/';
+		$grepMode = $this->isDir() ? Varien_Io_File::GREP_DIRS : Varien_Io_File::GREP_FILES;
 		$io = $this->getIo();
 		$io->cd($imagesDir);
 		$files = $io->ls($grepMode);
-        $defaultValues = $simpleDefaultValues = [
-            'admin',
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH,
-            Mage_Catalog_Model_Product_Status::STATUS_ENABLED,
-        ];
-        $simpleDefaultValues[1] = Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE; // set not visible for simple products
 
 		$step = self::ITERATION_LIMIT;
 		$count = count($files);
-		for ($i = 0; $i < $count; $i += $step) {
-			$filesSlice = array_slice($files, $i, $step);
-			$color = array();
-			$fileIds = array();
-			$fileNames = [];
-			foreach ($filesSlice as $file) {
-                $fileId = $this->specialCharsReplace($file['text']);
-                $fileNames[] = $fileId;
-                $fileIds[] = $this->specialCharsReplace(pathinfo($file['text'], PATHINFO_FILENAME));
+        for ($i = 0; $i < $count; $i += $step) {
+            $filesSlice = array_slice($files, $i, $step);
 
-				if ($this->hasNested()) {
-                    $io->cd($file['id']);
-                    $subDirs = $io->ls(Varien_Io_File::GREP_DIRS);
-                    foreach ($subDirs as $d) {
-                        //$color[$fileId][] = $d['text'];
-                        $this->collectAttrs($fileId, $d['text']);
-                    }
-                }
-			}
+            $fileIds = $this->prepareFileIds($filesSlice);
 
-			$adminStoreId = Mage_Core_Model_App::ADMIN_STORE_ID;
-			$currentStoreId = Mage::app()->getStore()->getId();
+            $adminStoreId = Mage_Core_Model_App::ADMIN_STORE_ID;
+            $currentStoreId = Mage::app()->getStore()->getId();
 
-			Mage::app()->setCurrentStore($adminStoreId);
+            Mage::app()->setCurrentStore($adminStoreId);
             $products = Mage::getResourceModel('catalog/product_collection')
-                ->addAttributeToFilter($config['name_to_attribute'], ['in' => $fileIds]);
+                ->addAttributeToFilter($config['name']['to_attribute'], ['in' => $fileIds]);
 
-			foreach ($products as $product) {
-                $skuAsFilename = $this->specialCharsEncode($product->getSku());
+            foreach ($products as $product) {
+                if ($this->isDir()) {
+                    $fileId = $this->specialCharsEncode($product->getData($config['name']['to_attribute']));
+                    $this->pathNested[$this->level] = $fileId;
+                }
 
                 if ($this->hasNested()) {
                     $simpleProducts = Mage::getModel('catalog/product_type_configurable')->getUsedProducts(null, $product);
-                    foreach ($simpleProducts as $simpleProduct) {
-                        if ($colorAttrName = $this->getColorAttrName($simpleProduct)) {
-                            $attr = $simpleProduct->getResource()->getAttribute($colorAttrName);
-                            $attr->setStoreId(Mage_Core_Model_App::ADMIN_STORE_ID);
-                            if (!$attr->usesSource()) {
-                                continue;
-                            }
-                            //$colorLabel = strtolower($attr->getSource()->getOptionText($simpleProduct->getAttributeText('color')));
-                            $colorLabel = $simpleProduct->getAttributeText($colorAttrName);
-                            //Zend_Debug::dump($colorLabel);
-                            //Zend_Debug::dump($color); die(__METHOD__);
-                            if (in_array($colorLabel, $color[$product->getSku()])) {
-                                $relativePath = sprintf('%s/%s/', $skuAsFilename, $colorLabel);
-                                $this->writeCsv($simpleProduct->getSku(), $relativePath, $simpleDefaultValues);
-                            }
-                        }
-                    }
+                    $this->processChildren($config['scan'], $simpleProducts/*, $product*/);
+                    $this->processedConfig = $config;
                 }
 
-				$relativePath = sprintf('%s/', $skuAsFilename);
-				//$this->writeCsv($product->getSku(), $relativePath, $defaultValues);
-				$this->writeCsv($product->getSku(), $defaultValues);
-			}
-			Mage::app()->setCurrentStore($currentStoreId);
-		}
-		
-		//Zend_Debug::dump($configurableProducts->getSize()); die(__METHOD__);
-		
-		return $count ? $this->getImageCsv()->streamClose() : false;
-	}
+                $this->writeCsv($product->getData('sku')/*, $defaultValues*/);
+            }
+            Mage::app()->setCurrentStore($currentStoreId);
+        }
+        return $count ? $this->getImageCsv()->streamClose() : false;
+    }
 
 
-	protected function processFileTypeStructure()
+	protected function processChildren($config, $products/*, $parentProduct*/)
     {
+        $this->level++;
+        $this->processedConfig = $config;
+        foreach ($products as $product) {
+            if (!isset($config['name']['to_attribute'])) {
+                continue;
+            }
+
+            $attr = $product->getResource()->getAttribute($config['name']['to_attribute']);
+            $attr->setStoreId(Mage_Core_Model_App::ADMIN_STORE_ID);
+            if (!$attr->usesSource()) {
+                continue;
+            }
+
+            $attrLabel = $product->getAttributeText($config['name']['to_attribute']);
+            $collectedAttrs = $this->getCollectedAttrs();
+            if (in_array($attrLabel, $collectedAttrs[end($this->pathNested)])) {
+                $this->pathNested[$this->level] = $attrLabel;
+                $relativePath = implode('/', $this->pathNested);
+                $this->writeCsv($product->getData('sku')/*, $defaultValues*/);
+
+                if ($this->hasNested()) {
+                    $path = $this->imagesSource->getPathname() . '/' . $relativePath;
+                    $io = $this->getIo();
+                    $io->cd($path);
+                    $files = $io->ls(Varien_Io_File::GREP_DIRS);
+                    $fileIds = $this->prepareFileIds($files);
+
+                    $subProducts = Mage::getResourceModel('catalog/product_collection')
+                        ->addAttributeToFilter($config['scan']['name']['to_attribute'], ['in' => $fileIds]);
+
+                    $this->processChildren($config['scan'], $subProducts);
+                }
+                array_pop($this->pathNested);
+            }
+        }
+
+        $this->level--;
 
     }
 
-	protected function writeCsv($sku, $defaultValues) {
-		$imagesDir = $this->imagesDir->getPathname() . '/';
+	protected function writeCsv($sku)
+    {
+        $config = $this->getProcessedConfig();
+        $defaultValues = $this->getDefaultValues();
 
-
-        $galleryImages = $this->prepareGallery($sku, $imagesDir);
-        // @todo Create config glob option/pattern for find main image
-        $mainImage = $this->prepareMainImage($sku, $imagesDir);
-
-        // @todo Get images based on config
-        if (!$mainImage && !isset($config['images']['image']) && $galleryImages) {
-            $mainImage = $galleryImages[0];
-        }
-        if (!isset($config['images']['small_image'])) {
-            $smallImage = $mainImage;
-        }
-        if (!isset($config['images']['thumbnail'])) {
-            $thumbnail = $mainImage;
+        if (isset($config['options']['values'])) {
+            $defaultValues = array_values(array_merge($this->getDefaultValues(true), $config['options']['values']));
         }
 
-        $galleryImages = ($galleryImages)
-            ? '+' . implode(';+', $galleryImages) // not exclude image
+        $images = $this->prepareImages($sku);
+        $galleryImages = ($images['media_gallery'])
+            ? '+' . implode(';+', $images['media_gallery']) // not exclude image
             : '';
 
+        $generatedValues = [
+            $sku,
+            '+' . $images['image'],
+            '+' . $images['small_image'],
+            '+' . $images['thumbnail'],
+            $galleryImages
+        ];
+        $values = array_merge($defaultValues, $generatedValues);
 
-		#$realPath = $imagesDir . '..' . $mainImage;
-		#if ($realPath && file_exists($realPath)) {
-			//$galleryImages = $this->prepareGallery($imagesDir . $relativePath);
-
-			$values = array_merge($defaultValues, array($sku, '+' . $mainImage, '+' . $smallImage, '+' . $thumbnail, $galleryImages));
-			$this->getImageCsv()->streamWriteCsv($values, $this->delimiter);
-		#}
+		return $this->getImageCsv()->streamWriteCsv($values, $this->delimiter);
 	}
 
-	public function getColorAttrName($product) {
-
-		#$attributeSetModel = Mage::getModel("eav/entity_attribute_set");
-		#$attributeSetModel->load($product->getAttributeSetId());
-		#$attributeSetName = $attributeSetModel->getAttributeSetName();
-
-		#if (isset($this->attributeSets[$attributeSetName])) {
-		#	return $this->attributeSets[$attributeSetName]['colorAttr'];
-		#}
-		#return false;
-
-        return 'color';
-	}
-
-	protected function getRelativePath($path)
+    protected function prepareFileIds($files)
     {
-        $sourcePath = $this->imagesDir->getPathname();
+        $config = $this->getProcessedConfig();
+        $io = $this->getIo();
+
+        $fileIds = [];
+        foreach ($files as $file) {
+            $fileName = $file['text'];
+            if (isset($config['name']['pattern']) && $config['name']['pattern']) {
+                preg_match('/' . $config['name']['pattern'] . '/', $file['text'], $matched);
+                $fileName = $matched[$config['name']['to_attribute']];
+                $this->filterVariables($matched);
+            }
+
+            $fileId = $this->specialCharsReplace(pathinfo($fileName, PATHINFO_FILENAME));
+            $fileIds[] = $fileId;
+            $this->addVariable($config['name']['to_attribute'], $fileId);
+
+            if ($this->hasNested()) {
+                $io->cd($file['id']);
+                $subDirs = $io->ls(Varien_Io_File::GREP_DIRS);
+                foreach ($subDirs as $d) {
+                    $this->collectAttrs($fileName, $d['text']);
+                }
+            }
+        }
+
+        return array_values(array_unique($fileIds));
+    }
+
+    protected function getPath()
+    {
+        return $this->pathNested
+            ? $this->imagesSource->getPathname() . '/' . implode('/', $this->pathNested) . '/'
+            : $this->imagesSource->getPathname() . '/';
+    }
+
+	protected function parseRelativePath($path)
+    {
+        $sourcePath = $this->imagesSource->getPathname();
         $relativePath = mb_substr($path, mb_strlen($sourcePath)); // with leading slash
 
         if (is_dir($path)) {
@@ -283,82 +361,58 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 		return $relativePath;
 	}
 
-	protected function prepareMainImage($sku, $path) {
-	    $config = $this->getCurrentConfig();
-
-	    if (!$config['images']['image']) {
-            return '';
-        }
-
+	protected function prepareImages($sku)
+    {
+        $path = $this->getPath();
+        $config = $this->getProcessedConfig();
         $skuEncoded = $this->specialCharsEncode($sku);
-        $globPath = $path . str_replace('%sku%', $skuEncoded, $config['images']['image']);
 
-        #$io = $this->getIo();
-        #$io->cd($path);
-        #$galleryImages = $io->ls(Varien_Io_File::GREP_FILES);
-        #$relativePath = $this->getRelativePath($path);
-
-        $images = glob($globPath);
-        if (!$images) {
-            return '';
+        $imageKeys = ['image', 'small_image', 'thumbnail'];
+        $images = [];
+        $images['media_gallery'] = $this->prepareGallery($sku);
+        $images['image'] = $images['media_gallery'] ? $images['media_gallery'][0] : '';
+        foreach ($imageKeys as $key) {
+            if (isset($config['images'][$key])) {
+                $configValue = $config['images'][$key];
+                $globPath = $path . str_replace('%sku%', $skuEncoded, $configValue);
+                $globImages = glob($globPath);
+                if (!$globImages) {
+                    $globImages[0] = $images['image'];
+                }
+                $images[$key] = $this->parseRelativePath($globImages[0]);
+            } else {
+                $images[$key] = $images['image'];
+            }
         }
 
-        #$imagesDir = $this->imagesDir->getPathname();
-        #$image = str_replace($imagesDir, '', $images[0]);
-
-
-
-		$mainImage = $this->getRelativePath($images[0]);
-
-		return $mainImage;
+		return $images;
 	}
 
     /**
-     * @param $path
+     * @param $sku
      * @return array
      */
-	protected function prepareGallery($sku, $path)
+	protected function prepareGallery($sku)
     {
-        $config = $this->getCurrentConfig();
+        $path = $this->getPath();
+        $config = $this->getProcessedConfig();
+        $skuEncoded = $this->specialCharsEncode($sku);
 
         if (!isset($config['images']['media_gallery'])) {
             return [];
         }
 
         // @todo Use global variable replacement
-        $globPath = $path . str_replace('%sku%', $sku, $config['images']['media_gallery']);
-
-		#$io = $this->getIo();
-		#$io->cd($path);
-		#$galleryImages = $io->ls(Varien_Io_File::GREP_FILES);
-		#$relativePath = $this->getRelativePath($path);
-
+        $globPath = $path . str_replace('%sku%', $skuEncoded, $config['images']['media_gallery']);
         $galleryImages = glob($globPath);
 
-        $imagesDir = $this->imagesDir->getPathname();
-
-        $gallery = array();
-		foreach ($galleryImages as $file) {
-			//$gallery[] = $relativePath . $file['text'];
-			$gallery[] = str_replace($imagesDir, '', $file['text']);
+        $gallery = [];
+        foreach ($galleryImages as $file) {
+			$gallery[] = $this->parseRelativePath($file);
 		}
 
-		//return '+' . implode(';+', $gallery); // not exclude image
-		return $gallery; // not exclude image
+		return $gallery;
 	}
-
-	/**
-	 * Get PHP interpreter path
-	 *
-	 * Replace filename to "php"
-	 *
-	 * @return string
-	 */
-	/*protected function getInterpreter() {
-		$phpPath = new \SplFileInfo(PHP_BINARY);
-
-		return $phpPath->getPath() . '/php';
-	}*/
 
 	public function setImageCsv($imageCsv)
     {
@@ -367,7 +421,8 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
         return $this;
     }
 
-	protected function getImageCsv() {
+	protected function getImageCsv()
+    {
 		if (!$this->imageCsv) {
 			$imageCsv = new Varien_Io_File();
 			$imageCsv->open(array('path' => $this->importFile->getPath()));
@@ -378,17 +433,4 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 		}
 		return $this->imageCsv;
 	}
-
-	protected function backupImages() {
-		$backupDir = 'backup';
-		$io = $this->getIo();
-		$io->cd($this->imagesDir->getPath());
-		$io->mkdir('backup');
-		$src = $this->imagesDir->getPathname();
-		$dst = $this->imagesDir->getPath() . '/' . $backupDir;
-		$this->rmove($src, $dst);
-		$io->rmdir($src, true);
-		$io->mkdir($src);
-	}
-
 }

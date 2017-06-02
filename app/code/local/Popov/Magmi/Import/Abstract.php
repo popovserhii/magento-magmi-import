@@ -84,11 +84,6 @@ abstract class Popov_Magmi_Import_Abstract {
 
 	protected $currentWebsite = null;
 
-	protected $websites = [
-		'base' => [],
-		'oodji' => [],
-	];
-
 	protected $tasks = [];
 
     protected $runMode = self::RUN_MODE_REAL;
@@ -102,11 +97,6 @@ abstract class Popov_Magmi_Import_Abstract {
 
     /** @var array */
     protected $currentConfig = [];
-
-    protected function getCurrentConfig()
-    {
-        return $this->currentConfig;
-    }
 
     public function setRunMode($mode)
     {
@@ -133,6 +123,11 @@ abstract class Popov_Magmi_Import_Abstract {
     public function getConfig()
     {
         return $this->config;
+    }
+
+    public function getCurrentConfig()
+    {
+        return $this->currentConfig;
     }
 
     public function preImport()
@@ -194,7 +189,7 @@ abstract class Popov_Magmi_Import_Abstract {
     {
         if (!$this->tasks) {
             $typeNode = $this->getImportCode() . '_import';
-            $tasks = (array) Mage::getConfig()->getNode('agere_magmi/jobs/' . $typeNode);
+            $tasks = (array) Mage::getConfig()->getNode('popov_magmi/jobs/' . $typeNode);
             foreach ($tasks as $name => $task) {
                 if (!$task) {
                     continue;

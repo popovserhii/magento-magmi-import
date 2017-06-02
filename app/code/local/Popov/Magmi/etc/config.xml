@@ -24,9 +24,9 @@
 							<children>
 								<config>
 									<children>
-										<agere_magmi translate="title" module="agere_magmi">
+										<popov_magmi translate="title" module="popov_magmi">
 											<title>Magmi Import</title>
-										</agere_magmi>
+										</popov_magmi>
 									</children>
 								</config>
 							</children>
@@ -39,78 +39,78 @@
 
 	<global>
 		<models>
-			<agere_magmi>
+			<popov_magmi>
 				<class>Popov_Magmi_Model</class>
-			</agere_magmi>
+			</popov_magmi>
 		</models>
 		<helpers>
-			<agere_magmi>
+			<popov_magmi>
 				<class>Popov_Magmi_Helper</class>
-			</agere_magmi>
+			</popov_magmi>
 		</helpers>
 
 		<template>
 			<email>
-				<agere_magmi_mail_notification_email_template translate="label" module="contacts">
+				<popov_magmi_mail_notification_email_template translate="label" module="contacts">
 					<label>Magmi Import Problem</label>
-					<file>agere_magmi/import_problem_form.html</file>
+					<file>popov_magmi/import_problem_form.html</file>
 					<type>text</type>
-				</agere_magmi_mail_notification_email_template>
+				</popov_magmi_mail_notification_email_template>
 			</email>
 		</template>
 	</global>
 
 	<default>
-		<agere_magmi>
+		<popov_magmi>
 			<mail_notification>
 				<enabled>0</enabled>
 				<recipient_email><![CDATA[hello@example.com]]></recipient_email>
 				<sender_email_identity>custom2</sender_email_identity>
-				<email_template>agere_magmi_mail_notification_email_template</email_template>
+				<email_template>popov_magmi_mail_notification_email_template</email_template>
 			</mail_notification>
-		</agere_magmi>
+		</popov_magmi>
 	</default>
 
 	<frontend>
 		<routers>
-			<agere_magmi>
+			<popov_magmi>
 				<use>standard</use>
 				<args>
 					<module>Popov_Magmi</module>
 					<frontName>magmi</frontName>
 				</args>
-			</agere_magmi>
+			</popov_magmi>
 		</routers>
 	</frontend>
 
 	<crontab>
 		<jobs>
-			<!--<agere_magmi_product_import_oodji>
+			<!--<popov_magmi_product_import_oodji>
 				<schedule>
 					<cron_expr>*/1 * * * *</cron_expr>
 				</schedule>
 				<run>
-					<model>agere_magmi/observer::productImport</model>
+					<model>popov_magmi/observer::productImport</model>
 				</run>
-			</agere_magmi_product_import_oodji>-->
+			</popov_magmi_product_import_oodji>-->
 
-			<agere_magmi_product_import_1>
+			<popov_magmi_product_import_1>
 				 <schedule>
 					<cron_expr>20 08 * * *</cron_expr>
 				 </schedule>
 				 <run>
-					<model>agere_magmi/observer::productImport</model>
+					<model>popov_magmi/observer::productImport</model>
 				 </run>
-			</agere_magmi_product_import_1>
+			</popov_magmi_product_import_1>
 
-			<agere_magmi_image_import>
+			<popov_magmi_image_import>
 				<schedule>
 					<cron_expr>00 22 * * *</cron_expr>
 				</schedule>
 				<run>
-					<model>agere_magmi/observer::imageImport</model>
+					<model>popov_magmi/observer::imageImport</model>
 				</run>
-			</agere_magmi_image_import>
+			</popov_magmi_image_import>
 		</jobs>
 	</crontab>
 
@@ -128,30 +128,27 @@
 
 	<popov_magmi>
 		<product_import />
+		<image_import />
 
 		<jobs>
 			<product_import>
 				<!-- This tag name doesn't matter. It only must be -->
-				<pull_files_from_ftp>
-					<alter>pre</alter>
-					<run>
-						<helper>agere_magmi/job_pullFile::run</helper>
-					</run>
-				</pull_files_from_ftp>
 				<file_not_found>
 					<alter>pre</alter>
 					<run>
-						<helper>agere_magmi/job_fileNotFound::run</helper>
+						<helper>popov_magmi/job_fileNotFound::run</helper>
 					</run>
 				</file_not_found>
-
-				<push_files_to_ftp>
+			</product_import>
+			<image_import>
+				<!-- This tag name doesn't matter. It only must be -->
+				<backup_images>
 					<alter>post</alter>
 					<run>
-						<helper>agere_magmi/job_pushFile::run</helper>
+						<helper>popov_magmi/job_backupImages::run</helper>
 					</run>
-				</push_files_to_ftp>
-			</product_import>
+				</backup_images>
+			</image_import>
 		</jobs>
 	</popov_magmi>
 </config>
