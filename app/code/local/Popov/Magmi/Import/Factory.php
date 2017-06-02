@@ -31,7 +31,7 @@ class Popov_Magmi_Import_Factory {
         /** @var Popov_Magmi_Import_Abstract $import */
 		$import = self::$created[$className] = new $className();
 		$import->setConfig($config);
-		#$import->setRunMode(Popov_Magmi_Import_Abstract::RUN_MODE_DEBUG);
+		$import->setRunMode(Popov_Magmi_Import_Abstract::RUN_MODE_DEBUG);
 
 		return $import;
 	}

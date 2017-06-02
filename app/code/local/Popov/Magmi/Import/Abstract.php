@@ -356,7 +356,7 @@ abstract class Popov_Magmi_Import_Abstract {
 				$cmd = escapeshellcmd(sprintf('"%s" "%s" %s', $this->getInterpreter(), $magmiCli, $arguments));
 				break;
 		}
-
+		Zend_Debug::dump($cmd); die(__METHOD__);
 		$runStatus = $this->isRealMode() ? system($cmd) : $this->log($cmd);
 
 		return $runStatus;

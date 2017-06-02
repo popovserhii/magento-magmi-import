@@ -46,6 +46,6 @@ class Popov_Magmi_Helper_Job_BackupImages extends Mage_Core_Helper_Abstract
     {
         $config = $this->getImporter()->getCurrentConfig();
 
-        return isset($config['options']['backupImages']) && $config['options']['backupImages'];
+        return isset($config['options']['backupImages']) && (int) $config['options']['backupImages'];
     }
 }
