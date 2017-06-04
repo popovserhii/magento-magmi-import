@@ -42,13 +42,17 @@
 			<popov_magmi>
 				<class>Popov_Magmi_Model</class>
 			</popov_magmi>
+			<cms>
+				<rewrite>
+					<template_filter>Popov_Magmi_Model_Template_Filter</template_filter>
+				</rewrite>
+			</cms>
 		</models>
 		<helpers>
 			<popov_magmi>
 				<class>Popov_Magmi_Helper</class>
 			</popov_magmi>
 		</helpers>
-
 		<template>
 			<email>
 				<popov_magmi_mail_notification_email_template translate="label" module="contacts">

@@ -43,10 +43,11 @@ Config explanation
 				Image import configuration is based on **glob** function. 
 				You can use any glob pattern for get needed images.
 				If you fill only *media_gallery* than first image will be getted for 'image', 'small_image' and 'thumbnail'.
-				Path is relative to parent path
+				Path is relative to parent path.
+				You can also use any native or custom template directives (see paragraph "Enhancements") in "images" config for more flexibility.
 				-->
 				<images>
-					<image>%sku%.jpg</image>
+					<image>{{var product.sku}}.jpg</image>
 					<!--<small_image />-->
 					<!--<thumbnail />-->
 					<!--<media_gallery />-->
@@ -95,4 +96,17 @@ Simply and declaration in your config.
 
 ## Notification
 If during import file does not find you can setup email notification in admin panel 
+
+## Enhancements
+Module has custom template directive *{{specChar}}* with allow decode and encode value for correct path resolving.
+If your sku contains special symbols which don't allowed operation system than you can resolve this with replacement.
+For example, sku "00SKVS/0DANX" become "00SKVS&Slash&0DANX" and you can use this in file name as "00SKVS&Slash&0DANX.jpg"
+
+### Usage
+In your glob pattern you can use needed replacement
+```
+{{specChar encode=$product.sku}}
+// or
+{{specChar decode=$product.sku}}
+```
 

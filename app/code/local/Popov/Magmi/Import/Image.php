@@ -57,8 +57,6 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 
     protected $processedConfig = [];
 
-    protected $variables = [];
-
 	public function __construct()
     {
 		$this->importFile = new \SplFileInfo(Mage::getBaseDir('var') . '/import/import-image.csv');
@@ -153,33 +151,6 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
         return $default['without'];
     }
 
-    protected function getVariable($name)
-    {
-        if (isset($this->variables[$name])) {
-            return $this->variables;
-        }
-
-        return false;
-    }
-
-    protected function addVariable($name, $value)
-    {
-        $this->variables[$name] = $value;
-
-        return $this;
-    }
-
-    protected function filterVariables($variables)
-    {
-        foreach ($variables as $name => $variable) {
-            if (!is_integer($name)) {
-                $this->variables[$name] = $variable;
-            }
-        }
-
-        return $this;
-    }
-
 	public function preImport()
     {
         parent::preImport();
@@ -232,19 +203,19 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 
                 if ($this->hasNested()) {
                     $simpleProducts = Mage::getModel('catalog/product_type_configurable')->getUsedProducts(null, $product);
-                    $this->processChildren($config['scan'], $simpleProducts/*, $product*/);
+                    $this->processChildren($config['scan'], $simpleProducts);
                     $this->processedConfig = $config;
                 }
 
-                $this->writeCsv($product->getData('sku')/*, $defaultValues*/);
+                $this->setVariable('product', $product);
+                $this->writeCsv($product->getData('sku'));
             }
             Mage::app()->setCurrentStore($currentStoreId);
         }
         return $count ? $this->getImageCsv()->streamClose() : false;
     }
 
-
-	protected function processChildren($config, $products/*, $parentProduct*/)
+	protected function processChildren($config, $products)
     {
         $this->level++;
         $this->processedConfig = $config;
@@ -264,7 +235,7 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
             if (in_array($attrLabel, $collectedAttrs[end($this->pathNested)])) {
                 $this->pathNested[$this->level] = $attrLabel;
                 $relativePath = implode('/', $this->pathNested);
-                $this->writeCsv($product->getData('sku')/*, $defaultValues*/);
+                $this->writeCsv($product->getData('sku'));
 
                 if ($this->hasNested()) {
                     $path = $this->imagesSource->getPathname() . '/' . $relativePath;
@@ -295,7 +266,7 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
             $defaultValues = array_values(array_merge($this->getDefaultValues(true), $config['options']['values']));
         }
 
-        $images = $this->prepareImages($sku);
+        $images = $this->prepareImages();
         $galleryImages = ($images['media_gallery'])
             ? '+' . implode(';+', $images['media_gallery']) // not exclude image
             : '';
@@ -323,12 +294,10 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
             if (isset($config['name']['pattern']) && $config['name']['pattern']) {
                 preg_match('/' . $config['name']['pattern'] . '/', $file['text'], $matched);
                 $fileName = $matched[$config['name']['to_attribute']];
-                $this->filterVariables($matched);
             }
 
-            $fileId = $this->specialCharsReplace(pathinfo($fileName, PATHINFO_FILENAME));
+            $fileId = $this->specialCharsDecode(pathinfo($fileName, PATHINFO_FILENAME));
             $fileIds[] = $fileId;
-            $this->addVariable($config['name']['to_attribute'], $fileId);
 
             if ($this->hasNested()) {
                 $io->cd($file['id']);
@@ -361,21 +330,20 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 		return $relativePath;
 	}
 
-	protected function prepareImages($sku)
+	protected function prepareImages()
     {
         $path = $this->getPath();
         $config = $this->getProcessedConfig();
-        $skuEncoded = $this->specialCharsEncode($sku);
 
         $imageKeys = ['image', 'small_image', 'thumbnail'];
         $images = [];
-        $images['media_gallery'] = $this->prepareGallery($sku);
+        $images['media_gallery'] = $this->prepareGallery();
         $images['image'] = $images['media_gallery'] ? $images['media_gallery'][0] : '';
         foreach ($imageKeys as $key) {
             if (isset($config['images'][$key])) {
                 $configValue = $config['images'][$key];
-                $globPath = $path . str_replace('%sku%', $skuEncoded, $configValue);
-                $globImages = glob($globPath);
+                $globPath = $path . $this->filter($configValue);
+                $globImages = glob($globPath, GLOB_BRACE);
                 if (!$globImages) {
                     $globImages[0] = $images['image'];
                 }
@@ -389,25 +357,22 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 	}
 
     /**
-     * @param $sku
      * @return array
      */
-	protected function prepareGallery($sku)
+	protected function prepareGallery()
     {
         $path = $this->getPath();
         $config = $this->getProcessedConfig();
-        $skuEncoded = $this->specialCharsEncode($sku);
 
         if (!isset($config['images']['media_gallery'])) {
             return [];
         }
-
-        // @todo Use global variable replacement
-        $globPath = $path . str_replace('%sku%', $skuEncoded, $config['images']['media_gallery']);
-        $galleryImages = glob($globPath);
+        $configValue = $config['images']['media_gallery'];
+        $globPath = $path . $this->filter($configValue);
+        $globImages = glob($globPath, GLOB_BRACE);
 
         $gallery = [];
-        foreach ($galleryImages as $file) {
+        foreach ($globImages as $file) {
 			$gallery[] = $this->parseRelativePath($file);
 		}
 

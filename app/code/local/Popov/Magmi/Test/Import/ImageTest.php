@@ -44,6 +44,88 @@ class Popov_Magmi_Test_Import_ImageTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($expected == $imageCsv->getData());
     }
 
+    //public function testSimpleStructureOneImagePerProductЦшWithCustomAttributeIdentifier()
+    public function testSimpleStructureOneImagePerProductWithCustomAttributeIdentifier()
+    {
+        /** @var DigitalPianism_TestFramework_Model_Config $mageConfig */
+        $mageConfig = Mage::getConfig();
+
+        $simplesMock = [
+            $product1 = m::mock('Varien_Object')
+                ->shouldReceive('getData')->with('sku')->andReturn('00SKVS/0DANX')->getMock()
+                ->shouldReceive('getData')->with('supplier_sku')->andReturn('1_notSkuButUniqId')->getMock(),
+            $product2 = m::mock('Varien_Object')
+                ->shouldReceive('getData')->with('sku')->andReturn('00SKZP/0NTGA')->getMock()
+                ->shouldReceive('getData')->with('supplier_sku')->andReturn('2_notSkuButUniqId')->getMock()
+        ];
+
+        $productsMock = m::mock('Popov_Magmi_Test_Fake_ProductCollectionFake');
+        $productsMock->shouldReceive('addAttributeToFilter')
+            ->with('supplier_sku', array('in' => ['1_notSkuButUniqId', '2_notSkuButUniqId']))
+            ->andReturn($simplesMock)
+            ->getMock();
+
+        //$productsMock = $this->getConfigurableProductsMock();
+
+        $mageConfig->setResourceModelTestDouble('catalog/product_collection', $productsMock);
+
+        $imageCsv = new Popov_Magmi_Test_Fake_CsvFake();
+        $imageImport = new Popov_Magmi_Import_Image();
+
+        $imageImport->setImageCsv($imageCsv);
+        $imageImport->setRunMode(Popov_Magmi_Import_Image::RUN_MODE_DEBUG);
+        $imageImport->setConfig([
+            'import_products_with_sku_name_and_custom_attribute' => [
+                'source_path' => dirname(__DIR__) . '/data/structure5',
+                'type' => 'file', // 'type' => 'file'
+                'product_type' => 'simple', // configurable
+                'name' => [
+                    'to_attribute' => 'supplier_sku', // filename to attribute name
+                ],
+
+                'images' => [
+                    'image' => '{{var product.supplier_sku}}.{jpg,png}',
+                    #'small_image',
+                    #'thumbnail',
+                    #'media_gallery' => '%sku%*.jpg',
+                ],
+
+                /*'options' => [
+                    'encode' => [
+                        'encode.product.sku',
+                        'product.supplier_sku',
+                    ]
+                ],*/
+            ],
+        ]);
+        $imageImport->run();
+
+        $expected = [
+            [
+                0 => 'admin',
+                1 => 4,
+                2 => 1,
+                3 => '00SKVS/0DANX',
+                4 => '+/1_notSkuButUniqId.jpg',
+                5 => '+/1_notSkuButUniqId.jpg',
+                6 => '+/1_notSkuButUniqId.jpg',
+                7 => '',
+            ],
+            [
+                0 => 'admin',
+                1 => 4,
+                2 => 1,
+                3 => '00SKZP/0NTGA',
+                4 => '+/2_notSkuButUniqId.png',
+                5 => '+/2_notSkuButUniqId.png',
+                6 => '+/2_notSkuButUniqId.png',
+                7 => '',
+            ],
+        ];
+
+        $this->assertTrue($expected == $imageCsv->getData());
+    }
+
     public function testStructureConfigurableWithSubSimples()
     {
         /** @var DigitalPianism_TestFramework_Model_Config $mageConfig */
@@ -289,8 +371,8 @@ class Popov_Magmi_Test_Import_ImageTest extends \PHPUnit_Framework_TestCase
     protected function getConfigurableProductsMock()
     {
         $configurableMock = [
-            $product1 = m::mock('Popov_Magmi_Test_Fake_ConfigurableProductFake')->shouldReceive('getData')->with('sku')->andReturn('00SKVS/0DANX')->getMock(),
-            $product2 = m::mock('Popov_Magmi_Test_Fake_ConfigurableProductFake')->shouldReceive('getData')->with('sku')->andReturn('00SKZP/0NTGA')->getMock(),
+            $product1 = m::mock('Varien_Object')->shouldReceive('getData')->with('sku')->andReturn('00SKVS/0DANX')->getMock(),
+            $product2 = m::mock('Varien_Object')->shouldReceive('getData')->with('sku')->andReturn('00SKZP/0NTGA')->getMock(),
         ];
 
         $productsMock = m::mock('Popov_Magmi_Test_Fake_ProductCollectionFake');
@@ -316,7 +398,7 @@ class Popov_Magmi_Test_Import_ImageTest extends \PHPUnit_Framework_TestCase
                         ],
 
                         'images' => [
-                            'image' => '%sku%.jpg',
+                            'image' => '{{specChar encode=$product.sku}}.jpg',
                             #'small_image',
                             #'thumbnail',
                             #'media_gallery' => '%sku%*.jpg',
@@ -398,7 +480,7 @@ class Popov_Magmi_Test_Import_ImageTest extends \PHPUnit_Framework_TestCase
                             'to_attribute' => 'sku', // filename to attribute name
                         ],
                         'images' => [
-                            'media_gallery' => '%sku%_*.jpg',
+                            'media_gallery' => '{{specChar encode=$product.sku}}_*.jpg',
                         ],
                     ],
                 ],

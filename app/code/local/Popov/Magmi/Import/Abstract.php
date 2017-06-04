@@ -20,6 +20,11 @@ abstract class Popov_Magmi_Import_Abstract {
 
 	protected $logFile = 'magmi-import.log';
 
+    /**
+     * @var Popov_Magmi_Helper_SpecialChar
+     */
+	protected $specialHelper;
+
 	/**
 	 * Csv delimiter
 	 *
@@ -31,23 +36,6 @@ abstract class Popov_Magmi_Import_Abstract {
 	 * @var Varien_Io_File
 	 */
 	protected $io;
-
-	/**
-	 * Special chars maps for replace
-	 *
-	 * @var array
-	 */
-	protected $specialCharsMap = array(
-		'&Slash&' => '/',
-		'&Backslash&' => '\\',
-		'&Asterisk&' => '*',
-		'&Pipe&' => '|',
-		'&Colon&' => ':',
-		'&quot&' => '"',
-		'&lt&' => '<',
-		'&gt&' => '>',
-		'&Questionmark&' => '?',
-	);
 
 	protected $cmdFlags = array(
 		'profile' => 'default',
@@ -98,6 +86,11 @@ abstract class Popov_Magmi_Import_Abstract {
     /** @var array */
     protected $currentConfig = [];
 
+    /** @var Mage_Cms_Model_Template_Filter */
+    protected $filter;
+
+    protected $variables = [];
+
     public function setRunMode($mode)
     {
         $this->runMode = $mode;
@@ -128,6 +121,65 @@ abstract class Popov_Magmi_Import_Abstract {
     public function getCurrentConfig()
     {
         return $this->currentConfig;
+    }
+
+    protected function getVariable($name)
+    {
+        if (isset($this->variables[$name])) {
+            return $this->variables;
+        }
+
+        return false;
+    }
+
+    protected function setVariable($name, $value)
+    {
+        $this->variables[$name] = $value;
+
+        if (is_array($value)/* || is_object($value)*/) {
+            $value = [$name => new Varien_Object($value)];
+        }
+        //array('data' => new Varien_Object($data));
+        $this->getFilter()->setVariables([$name => $value]);
+
+        return $this;
+    }
+
+    protected function addVariable($name, $value)
+    {
+        if (isset($this->variables[$name])) {
+            Mage::throwException(sprintf('Variable %s already isset. You cannot add one variable twice.'));
+        }
+
+        return $this->setVariable($name, $value);
+    }
+
+    protected function filterVariables($variables)
+    {
+        foreach ($variables as $name => $variable) {
+            if (!is_integer($name)) {
+                $this->setVariable($name, $variable);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Mage_Cms_Model_Template_Filter $filter
+     */
+    public function getFilter()
+    {
+        if (!$this->filter) {
+            $this->filter = Mage::getModel('cms/template_filter');
+        }
+
+        return $this->filter;
+    }
+
+    public function filter($context)
+    {
+        return $this->getFilter()->filter($context);
     }
 
     public function preImport()
@@ -278,29 +330,25 @@ abstract class Popov_Magmi_Import_Abstract {
 		//$parts = explode(' /', $exec);
 		//$binnary = isset($parts[1]) ? $parts[1] : 'php';
 		$binnary = 'php';
-		//Zend_Debug::dump($binnary); die(__METHOD__);
 
 		return $binnary;
 	}
 
-	public function specialCharsReplace($name) {
-		static $mapped = array();
-		if (!isset($mapped['from'])) { // optimize code
-			$mapped['from'] = array_keys($this->specialCharsMap);
-			$mapped['to'] = array_values($this->specialCharsMap);
-		}
+	public function getSpecialHelper()
+    {
+        if (!$this->specialHelper) {
+            $this->specialHelper = Mage::helper('popov_magmi/specialChar');
+        }
 
-		return str_replace($mapped['from'], $mapped['to'], $name);
+        return $this->specialHelper;
+    }
+
+	public function specialCharsDecode($name) {
+        return $this->getSpecialHelper()->decode($name);
 	}
 
 	public function specialCharsEncode($name) {
-		static $mapped = array();
-		if (!isset($mapped['from'])) { // optimize code
-			$mapped['to'] = array_keys($this->specialCharsMap);
-			$mapped['from'] = array_values($this->specialCharsMap);
-		}
-
-		return str_replace($mapped['from'], $mapped['to'], $name);
+        return $this->getSpecialHelper()->encode($name);
 	}
 
 	/**
@@ -356,7 +404,7 @@ abstract class Popov_Magmi_Import_Abstract {
 				$cmd = escapeshellcmd(sprintf('"%s" "%s" %s', $this->getInterpreter(), $magmiCli, $arguments));
 				break;
 		}
-		Zend_Debug::dump($cmd); die(__METHOD__);
+
 		$runStatus = $this->isRealMode() ? system($cmd) : $this->log($cmd);
 
 		return $runStatus;
@@ -434,8 +482,6 @@ abstract class Popov_Magmi_Import_Abstract {
 	}
 
 	public function exec($cmd) {
-		//die($cmd);
-		//echo "{$cmd} 2> output \n";
 		$out = shell_exec("{$cmd} 2> output");
 		$output = $out ? $out : join('', file('output'));
 
