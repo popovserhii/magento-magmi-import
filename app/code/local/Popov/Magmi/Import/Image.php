@@ -126,6 +126,25 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 
         return $this->imagesSource;
     }
+	
+	protected function getPath()
+    {
+        return $this->pathNested
+            ? $this->imagesSource->getPathname() . '/' . implode('/', $this->pathNested) . '/'
+            : $this->imagesSource->getPathname() . '/';
+    }
+
+	protected function parseRelativePath($path)
+    {
+        $sourcePath = $this->imagesSource->getPathname();
+        $relativePath = mb_substr($path, mb_strlen($sourcePath)); // with leading slash
+
+        if (is_dir($path)) {
+            $relativePath .= '/';
+        }
+
+		return $relativePath;
+	}
 
     protected function getDefaultValues($withKeys = false)
     {
@@ -310,25 +329,6 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 
         return array_values(array_unique($fileIds));
     }
-
-    protected function getPath()
-    {
-        return $this->pathNested
-            ? $this->imagesSource->getPathname() . '/' . implode('/', $this->pathNested) . '/'
-            : $this->imagesSource->getPathname() . '/';
-    }
-
-	protected function parseRelativePath($path)
-    {
-        $sourcePath = $this->imagesSource->getPathname();
-        $relativePath = mb_substr($path, mb_strlen($sourcePath)); // with leading slash
-
-        if (is_dir($path)) {
-            $relativePath .= '/';
-        }
-
-		return $relativePath;
-	}
 
 	protected function prepareImages()
     {
