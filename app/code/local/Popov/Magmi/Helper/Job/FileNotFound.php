@@ -34,7 +34,7 @@ class Popov_Magmi_Helper_Job_FileNotFound extends Mage_Core_Helper_Abstract
     public function getMailClient()
     {
         if (!$this->mailClient) {
-            $this->mailClient = Mage::helper('agere_magmi/mail');
+            $this->mailClient = Mage::helper('popov_magmi/mail');
         }
 
         return $this->mailClient;

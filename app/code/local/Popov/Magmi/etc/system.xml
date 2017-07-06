@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
 	<tabs><!-- this must be in every system.xml -->
-		<agere module="agere_magmi" translate="label"><!-- general tab name -->
-			<label>Popov</label><!-- general tab label in left panel -->
-			<!--<sort_order>10000</sort_order>-->
+		<agere module="popov_magmi" translate="label"><!-- general tab name -->
+			<label>Popov's Modules</label><!-- general tab label in left panel -->
+			<sort_order>10000</sort_order>
 		</agere>
 	</tabs>
 
     <sections>
-          <agere_magmi translate="label" module="agere_magmi">
+          <popov_magmi translate="label" module="popov_magmi">
             <label>Magmi Import</label><!-- sub tab label of general tab -->
             <tab>agere</tab><!-- name of general tab name. See <tabs/> section above -->
             <frontend_type>text</frontend_type>
@@ -63,6 +63,6 @@
                     </fields>
                 </mail_notification>
             </groups>
-        </agere_magmi>
+        </popov_magmi>
     </sections>
 </config>

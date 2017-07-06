@@ -8,9 +8,9 @@
                         <children>
                             <config>
                                 <children>
-                                    <agere_magmi translate="title" module="agere_magmi">
+                                    <popov_magmi translate="title" module="popov_magmi">
                                         <title>Magmi import</title>
-                                    </agere_magmi>
+                                    </popov_magmi>
                                 </children>
                             </config>
                         </children>

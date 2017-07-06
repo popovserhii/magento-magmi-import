@@ -9,10 +9,10 @@
  */
 class Popov_Magmi_Helper_Mail extends Mage_Core_Helper_Abstract {
 
-	const XML_PATH_CALLBACK_RECIPIENT = 'agere_magmi/mail_notification/recipient_email';
-	const XML_PATH_CALLBACK_SENDER = 'agere_magmi/mail_notification/sender_email_identity';
-	const XML_PATH_CALLBACK_TEMPLATE = 'agere_magmi/mail_notification/email_template';
-	const XML_PATH_ENABLED = 'agere_magmi/mail_notification/enabled';
+	const XML_PATH_CALLBACK_RECIPIENT = 'popov_magmi/mail_notification/recipient_email';
+	const XML_PATH_CALLBACK_SENDER = 'popov_magmi/mail_notification/sender_email_identity';
+	const XML_PATH_CALLBACK_TEMPLATE = 'popov_magmi/mail_notification/email_template';
+	const XML_PATH_ENABLED = 'popov_magmi/mail_notification/enabled';
 
 	public function sendNotification($website) {
 		if (Mage::getStoreConfig(self::XML_PATH_ENABLED)) {
@@ -48,7 +48,7 @@ class Popov_Magmi_Helper_Mail extends Mage_Core_Helper_Abstract {
 			} catch (Exception $e) {
 				$translate->setTranslateInline(true);
 
-				Mage::getSingleton('customer/session')->addError(Mage::helper('agere_magmi')
+				Mage::getSingleton('customer/session')->addError(Mage::helper('popov_magmi')
 					->__('Unable to submit your request. Please, try again later'));
 
 				return;
