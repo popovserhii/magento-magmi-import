@@ -59,7 +59,10 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
 
 	public function __construct()
     {
-		$this->importFile = new \SplFileInfo(Mage::getBaseDir('var') . '/import/import-image.csv');
+        if (!is_dir($dir = Mage::getBaseDir('var') . '/import/')) {
+            mkdir($dir);
+        }
+		$this->importFile = new \SplFileInfo($dir . 'import-image.csv');
 	}
 
     /**
@@ -114,13 +117,7 @@ class Popov_Magmi_Import_Image extends Popov_Magmi_Import_Abstract {
     {
         if (!$this->imagesSource) {
             $config = $this->getCurrentConfig();
-            if ('unix' === $this->getSystemOs() && ('/' === $config['source_path'][0])) {
-                $sourcePath =  $config['source_path'];
-            } elseif ('win' === $this->getSystemOs() && (':' === $config['source_path'][1])) {
-                $sourcePath =  $config['source_path'];
-            } else {
-                $sourcePath = Mage::getBaseDir() . '/' . $config['source_path'];
-            }
+            $sourcePath = $this->getAbsolutePath($config['source_path']);
             $this->imagesSource = new \SplFileInfo($sourcePath);
         }
 

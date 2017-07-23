@@ -26,11 +26,13 @@ class Popov_Magmi_Import_Factory {
 		}
 
         $importNode = $name . '_import';
-        $config = (array) Mage::getConfig()->getNode('popov_magmi/' . $importNode)->asArray();
+        $importConfig = (array) Mage::getConfig()->getNode('popov_magmi/' . $importNode)->asArray();
+        $generalConfig = (array) Mage::getConfig()->getNode('popov_magmi/general_import')->asArray();
 
         /** @var Popov_Magmi_Import_Abstract $import */
 		$import = self::$created[$className] = new $className();
-		$import->setConfig($config);
+		$import->setConfig($importConfig);
+		$import->setGeneralConfig($generalConfig);
 		//$import->setRunMode(Popov_Magmi_Import_Abstract::RUN_MODE_DEBUG);
 
 		return $import;

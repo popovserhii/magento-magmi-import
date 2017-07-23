@@ -83,6 +83,13 @@ abstract class Popov_Magmi_Import_Abstract {
      */
     protected $config = [];
 
+    /**
+     * General import config which applies to to all imports
+     *
+     * @var array
+     */
+    protected $generalConfig = [];
+
     /** @var array */
     protected $currentConfig = [];
 
@@ -104,6 +111,18 @@ abstract class Popov_Magmi_Import_Abstract {
     public function isDebugMode()
     {
         return $this->runMode === self::RUN_MODE_DEBUG;
+    }
+
+    public function setGeneralConfig($config)
+    {
+        $this->generalConfig = $config;
+
+        return $this;
+    }
+
+    public function getGeneralConfig()
+    {
+        return $this->generalConfig;
     }
 
     public function setConfig($config)
@@ -185,6 +204,20 @@ abstract class Popov_Magmi_Import_Abstract {
     public function preImport()
     {
         $this->runJobs('pre');
+    }
+
+    public function getAbsolutePath($path)
+    {
+        $config = $this->getCurrentConfig();
+        if ('unix' === $this->getSystemOs() && ('/' === $path)) {
+            $absolutePath = $path;
+        } elseif ('win' === $this->getSystemOs() && (':' === $config['source_path'][1])) {
+            $absolutePath = $path;
+        } else {
+            $absolutePath = Mage::getBaseDir() . '/' . $path;
+        }
+
+        return $absolutePath;
     }
 
 	public function postImport()
@@ -393,7 +426,9 @@ abstract class Popov_Magmi_Import_Abstract {
 	}
 
 	public function import() {
-		$magmiCli = sprintf('%s/magmi-web/cli/magmi.cli.php', Mage::getBaseDir('base'));
+	    $config = $this->getGeneralConfig();
+		//$magmiCli = sprintf('%s/magmi-web/cli/magmi.cli.php', Mage::getBaseDir('base'));
+		$magmiCli = $this->getAbsolutePath($config['magmi_cli_pathname']);
 		$arguments = $this->getCmdArgs();
 
 		switch ($this->getSystemOs()) {

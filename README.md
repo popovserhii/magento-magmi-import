@@ -11,15 +11,19 @@ Config explanation
 ```
 <config>
 	<popov_magmi>
+        <general_import>
+            <!-- path to magmi console script -->
+            <magmi_cli_pathname>../vendor/dweeves/magmi/magmi/cli/magmi.cli.php</magmi_cli_pathname>
+        </general_import>
 		<image_import>
 			<simple_import><!-- import name -->
 				<!-- Path to images source. Must be equal with magmi images source option -->
 				<source_path>media/import/images</source_path>
 	
-				<!-- 
-				If mages not have directory structure use "file". 
-				If images placed in sub dirctory than use "dir".
-				 -->
+				<!--
+                If type is "dir" then images should be put in this directory
+                if type is "file" then images should be sought in current directory
+                -->
 				<type>file</type>
 	
 				<!--
