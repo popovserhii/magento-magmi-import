@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-	<tabs><!-- this must be in every system.xml -->
-		<agere module="popov_magmi" translate="label"><!-- general tab name -->
-			<label>Popov's Modules</label><!-- general tab label in left panel -->
-			<sort_order>10000</sort_order>
-		</agere>
-	</tabs>
-
     <sections>
           <popov_magmi translate="label" module="popov_magmi">
             <label>Magmi Import</label><!-- sub tab label of general tab -->
-            <tab>agere</tab><!-- name of general tab name. See <tabs/> section above -->
+            <tab>popov</tab><!-- name of general tab name. See <tabs/> section above -->
             <frontend_type>text</frontend_type>
             <sort_order>210</sort_order>
             <show_in_default>1</show_in_default>

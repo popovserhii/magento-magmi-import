@@ -4,7 +4,7 @@
  *
  * @category Popov
  * @package Popov_Magmi
- * @author Popov Sergiy <popov@agere.com.ua>
+ * @author Popov Sergiy <popow.serhii@gmail.com>
  * @datetime: 11.11.13 15:19
  */
 class Popov_Magmi_Model_Observer extends Varien_Event_Observer {

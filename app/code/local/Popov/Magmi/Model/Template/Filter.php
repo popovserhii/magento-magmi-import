@@ -5,7 +5,7 @@
  *
  * @category Popov
  * @package Popov_Magmi
- * @author Popov Sergiy <popov@agere.com.ua>
+ * @author Popov Sergiy <popow.serhii@gmail.com>
  * @datetime: 04.06.2017 19:18
  */
 class Popov_Magmi_Model_Template_Filter extends Mage_Cms_Model_Template_Filter

@@ -4,7 +4,7 @@
  *
  * @category Popov
  * @package Popov_Shell
- * @author Popov Sergiy <popov@agere.com.ua>
+ * @author Popov Sergiy <popow.serhii@gmail.com>
  * @datetime: 22.12.15 12:20
  */
 $rootPath = realpath($file = './');

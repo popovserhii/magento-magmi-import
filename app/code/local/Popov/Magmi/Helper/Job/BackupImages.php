@@ -5,7 +5,7 @@
  *
  * @category Popov
  * @package Popov_Magmi
- * @author Popov Sergiy <popov@agere.com.ua>
+ * @author Popov Sergiy <popow.serhii@gmail.com>
  * @datetime: 13.03.2017 18:16
  */
 class Popov_Magmi_Helper_Job_BackupImages extends Mage_Core_Helper_Abstract

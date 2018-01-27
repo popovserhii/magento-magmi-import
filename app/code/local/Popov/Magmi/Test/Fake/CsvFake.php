@@ -5,7 +5,7 @@
  *
  * @category Popov
  * @package Popov_Magmi
- * @author Popov Sergiy <popov@agere.com.ua>
+ * @author Popov Sergiy <popow.serhii@gmail.com>
  * @datetime: 28.05.2017 22:31
  */
 class Popov_Magmi_Test_Fake_CsvFake
